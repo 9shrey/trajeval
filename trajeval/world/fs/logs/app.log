@@ -1,0 +1,36 @@
+2025-10-21T08:00:01 INFO  api       server started on :8080
+2025-10-21T08:00:03 INFO  inventory sync job scheduled every 15m
+2025-10-21T08:05:12 INFO  checkout  order 1061 created
+2025-10-21T08:07:44 WARN  payment   gateway latency 2400ms above threshold
+2025-10-21T08:08:02 ERROR payment   gateway timeout after 10000ms for order 1061
+2025-10-21T08:08:30 INFO  checkout  order 1061 retry succeeded
+2025-10-21T08:15:00 INFO  inventory sync started
+2025-10-21T08:15:09 ERROR inventory sync failed: warehouse PUN-1 API returned 503
+2025-10-21T08:30:00 INFO  inventory sync started
+2025-10-21T08:30:04 INFO  inventory sync completed (412 SKUs)
+2025-10-21T08:41:17 WARN  api       slow query 1800ms on /orders?status=shipped
+2025-10-21T08:52:03 ERROR db        connection refused (pool exhausted, 50/50 in use)
+2025-10-21T08:52:04 ERROR db        connection refused (pool exhausted, 50/50 in use)
+2025-10-21T08:52:20 INFO  db        pool recovered
+2025-10-21T09:03:44 INFO  checkout  order 1062 created
+2025-10-21T09:04:01 ERROR payment   gateway timeout after 10000ms for order 1062
+2025-10-21T09:04:35 ERROR payment   gateway timeout after 10000ms for order 1062
+2025-10-21T09:05:10 INFO  checkout  order 1062 retry succeeded
+2025-10-21T09:15:00 INFO  inventory sync started
+2025-10-21T09:15:06 INFO  inventory sync completed (412 SKUs)
+2025-10-21T09:22:51 WARN  email     bounce from rohan.reddy@mailbox.example
+2025-10-21T09:30:00 INFO  inventory sync started
+2025-10-21T09:30:05 INFO  inventory sync completed (412 SKUs)
+2025-10-21T09:47:13 ERROR api       unhandled exception in /tickets/18: KeyError 'assignee'
+2025-10-21T09:58:40 WARN  payment   gateway latency 3100ms above threshold
+2025-10-21T10:00:00 INFO  api       health check ok
+2025-10-21T10:12:09 INFO  checkout  order 1063 created
+2025-10-21T10:12:15 INFO  checkout  order 1063 paid
+2025-10-21T10:15:00 INFO  inventory sync started
+2025-10-21T10:15:11 ERROR inventory sync failed: warehouse PUN-1 API returned 503
+2025-10-21T10:20:33 WARN  db        replication lag 12s
+2025-10-21T10:30:00 INFO  inventory sync started
+2025-10-21T10:30:07 INFO  inventory sync completed (412 SKUs)
+2025-10-21T10:44:56 ERROR payment   gateway timeout after 10000ms for order 1064
+2025-10-21T10:45:30 INFO  checkout  order 1064 retry succeeded
+2025-10-21T11:00:00 INFO  api       health check ok

@@ -7,6 +7,6 @@ task_plan.md
 progress.md
 findings.md
 runs/_scratch/
-logs/
+/logs/
 dashboard/data/
 runs/*/results.jsonl
