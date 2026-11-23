@@ -23,8 +23,8 @@ engine.
 - **The judge is measured before it is used.** On 200 labelled answers the best
   judges reach Cohen's kappa of about 0.3 on held-out tasks ("fair" agreement); a 0.5B judge passes
   75% of answers when 12% are correct (kappa 0.08). So open-ended pass rates below come with that
-  error bar, and nothing is gated on them. *The 200 labels were written by Claude (an LLM) as a first
-  pass and are not yet human-reviewed; see [labels/](labels/README.md).*
+  error bar, and nothing is gated on them. *The 200 labels were drafted by Claude (an LLM) and then
+  reviewed by me, not blind; see [labels/](labels/README.md).*
 
 **Dashboard:** [9shrey.github.io/trajeval](https://9shrey.github.io/trajeval/) · every number below is regenerated from `runs/` by `trajeval export`.
 
@@ -235,11 +235,13 @@ against 200 labelled answers (`labels/`):
   gold-path runs (the harness makes the right tool calls, the model writes the answer). Even so,
   24 of 200 samples pass: every interval below is wide.
 
-**Who labelled them.** The 200 labels in `labels/labels_claude.jsonl` were written by Claude, an LLM,
+**Who labelled them.** Claude, an LLM, drafted all 200 labels (`labels/labels_claude.jsonl`)
 following the written rule in [labels/README.md](labels/README.md), each with a one-line rationale
-(8 are marked borderline). They are not human labels, and every number below is agreement with
-them. `trajeval label` walks through all 200 for human review and stores decisions separately;
-`trajeval agree --source human` then reports agreement on the reviewed subset.
+(8 marked borderline). I then reviewed all 200 against the same rule and changed none
+(`labels/labels_human.jsonl`). The review was not blind: I saw Claude's label next to each answer,
+so it confirms the labels rather than adding an independent second annotation, and the set has no
+human-human agreement figure yet. `trajeval label` runs a blind review (you decide before seeing
+the draft label), which is how a second annotator should be added.
 
 <!-- table:judge -->
 | judge | sees | dev kappa (95% CI) | test kappa (95% CI) | test accuracy | test confusion [label pass: judge pass, fail / label fail: judge pass, fail] | judge pass rate vs label (test) |
@@ -294,8 +296,9 @@ Any OpenAI-compatible endpoint works; set `TRAJEVAL_API_KEY` for a hosted one an
 
 1. **Sequential testing instead of fixed k.** Most tasks are 0/k or k/k; spend trials only where the
    result is ambiguous (SPRT or a Bayesian stopping rule). Same power for a fraction of the GPU time.
-2. **Human review of the 200 labels** (`trajeval label` is built for it) and a second annotator, so
-   the judge's kappa has a human-human ceiling to be compared against.
+2. **A blind second annotator** (`trajeval label` runs blind by default). My review of the labels
+   saw the drafts, so there is no independent inter-annotator kappa yet: the ceiling a judge's kappa
+   should be compared against.
 3. **A frontier model as agent and as judge.** The small local models put most tasks at 0%;
    a stronger agent would make per-task regression tests far more informative.
 4. **Rubric points scored separately** instead of one pass/fail verdict, so a judge disagreement can

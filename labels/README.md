@@ -8,17 +8,19 @@ split is by task: dev tasks were used to iterate on the judge prompt, test tasks
 
 | file | labeller | status |
 |---|---|---|
-| `labels_claude.jsonl` | Claude (Anthropic's LLM), first pass, one-line rationale per label | **not human labels** |
-| `labels_human.jsonl` | a person, via `trajeval label` | takes precedence where present |
+| `labels_claude.jsonl` | Claude (Anthropic's LLM), first draft, one-line rationale per label | 200 drafted |
+| `labels_human.jsonl` | the author, reviewing the drafts | 200 reviewed, 0 changed, **not blind** |
 
-Every report says which source a number comes from (`labeled_by`). A kappa computed against
-`labels_claude.jsonl` measures agreement between two LLMs, not between a judge and a human, and is
-labelled that way in the README and the dashboard.
+The author's review (2026-11-23) saw Claude's label next to each answer and accepted all 200. That
+confirms the drafts against the rule below; it is not an independent second annotation, so there is
+no human-human agreement figure for this set. Each row of `labels_human.jsonl` records `blind`
+and the draft label it was compared with.
 
-To review: `trajeval label` walks through every sample, shows the task, rubric, reference, answer and
-Claude's label, and records your decision (agree / flip / pass / fail). It saves after every
-answer, so it can be stopped and resumed. `trajeval agree --source human` then reports agreement
-on the reviewed subset, and `--source best` uses human labels wherever they exist.
+For an independent annotation run `trajeval label`. It is blind by default: it shows the task,
+rubric, reference and answer, records your pass/fail, and only then reveals the draft label
+(`--show-claude` shows it up front instead). It saves after every answer, so it can be stopped and
+resumed. `trajeval agree` then reports Claude-vs-human kappa on the blind rows, and every judge's
+agreement against the labels (`--source human`, `claude` or `best`).
 
 ## The labelling rule
 

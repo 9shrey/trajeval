@@ -154,3 +154,14 @@ def test_judge_cli_dedupes_and_reuses_label_verdicts(tmp_path, monkeypatch, labd
     assert [x["answer"] for x in sent] == ["same answer"]          # deduped, and "answer 0" reused
     out = [json.loads(x) for x in (d / "judgments" / "default.jsonl").read_text().splitlines()]
     assert [o["verdict"] for o in out] == ["pass", "pass", "fail", "fail"]   # reused s000 verdict (fail); empty fails
+
+
+def test_blind_review_records_first_decision_and_claude_vs_human(labdir, monkeypatch):
+    (labdir / "labels_human.jsonl").unlink()
+    answers = iter(["p", "x", "q"])                       # label s000 pass, s001 fail, then quit
+    monkeypatch.setattr("builtins.input", lambda _: next(answers))
+    labels_mod.review(labdir, reviewer="tester", blind=True)
+    rows = [json.loads(x) for x in (labdir / "labels_human.jsonl").read_text().splitlines()]
+    assert [(r["sample_id"], r["label"], r["blind"]) for r in rows] == [("s000", "pass", True), ("s001", "fail", True)]
+    c = labels_mod.claude_vs_human(labdir)                # Claude: s000 fail, s001 pass -> both disagree
+    assert c["n"] == 2 and c["blind"] and c["agreement"] == 0.0

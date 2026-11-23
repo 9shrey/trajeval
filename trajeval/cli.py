@@ -171,8 +171,16 @@ def cmd_judge_labels(a):
 
 
 def cmd_agree(a):
-    from .labels import LABELS_DIR, agreement
+    from .labels import LABELS_DIR, agreement, claude_vs_human
     names = a.names or sorted(p.stem for p in (LABELS_DIR / "judgments").glob("*.jsonl"))
+    cvh = claude_vs_human()
+    if cvh and not cvh["blind"]:
+        print(f"Human review of Claude's labels: {cvh['n']} reviewed, not blind (a confirmation, not an independent "
+              f"annotation), {round((1 - cvh['agreement']) * cvh['n'])} changed")
+    elif cvh:
+        print(f"Claude vs human labels (blind, {cvh['n']} samples): "
+              f"kappa {cvh['kappa']:.3f}, raw agreement {cvh['agreement']:.1%}, "
+              f"confusion rows=Claude cols=human {cvh['confusion']}")
     print(f"label source: {a.source}")
     print(f"{'judge':<28} {'split':<5} {'n':>4} {'kappa':>6} {'95% CI':>15} {'acc':>6} {'judge pass':>10} "
           f"{'label pass':>10}  confusion [[TP-pass..]]")
@@ -189,7 +197,7 @@ def cmd_agree(a):
 
 def cmd_label(a):
     from .labels import review
-    review(reviewer=a.reviewer)
+    review(reviewer=a.reviewer, blind=not a.show_claude)
 
 
 def cmd_affected(a):
@@ -290,6 +298,7 @@ def main(argv=None):
 
     lb = sub.add_parser("label", help="review the labelled samples in the terminal (records human labels)")
     lb.add_argument("--reviewer", default="human")
+    lb.add_argument("--show-claude", action="store_true", help="show Claude's label before you decide (not blind)")
     lb.set_defaults(fn=cmd_label)
 
     af = sub.add_parser("affected", help="tasks whose gold trajectory a fault touches")

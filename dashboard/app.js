@@ -299,9 +299,7 @@ async function renderJudge(judgeName) {
   let jd;
   try { jd = await get("judge.json"); } catch { view.innerHTML = "<h2>Judge agreement</h2><p>No labelled samples exported yet.</p>"; return; }
   const ag = jd.agreement;
-  const src = jd.label_sources;
-  const claudeN = src["claude-opus-5.5"] || Object.entries(src).filter(([k]) => k.startsWith("claude")).reduce((a, [, v]) => a + v, 0);
-  const humanN = Object.entries(src).filter(([k]) => !k.startsWith("claude") && k !== "unlabelled").reduce((a, [, v]) => a + v, 0);
+  const pv = jd.provenance || { drafted_by_claude: 0, human_reviewed: 0, human_blind: 0, human_changed: 0 };
   judgeName ||= [...ag].sort((a, b) => (b.dev?.kappa ?? -1) - (a.dev?.kappa ?? -1))[0]?.judge;
   const sel = ag.find(a => a.judge === judgeName);
   const chartRows = [];
@@ -319,9 +317,12 @@ async function renderJudge(judgeName) {
   <h2>Judge agreement</h2>
   <p class="intro">${jd.samples.length} open-ended answers drawn from the runs, each labelled pass or fail against its task
     rubric, then graded by every judge configuration. Prompts were tuned on the dev tasks only; the test tasks were held out.</p>
-  <div class="note"><b>Who labelled these:</b> ${claudeN} labels were written by Claude (an LLM) as a first pass and are
-    awaiting human review; ${humanN} have been reviewed by a person with <code>trajeval label</code>. Until review is
-    complete, read the kappa below as judge agreement with Claude's labels, not with human judgement.</div>
+  <div class="note"><b>Who labelled these:</b> ${pv.drafted_by_claude} labels were drafted by Claude (an LLM), each with a
+    one-line rationale, following the rule in <code>labels/README.md</code>. ${pv.human_reviewed
+      ? `The author then reviewed ${pv.human_reviewed} of them and changed ${pv.human_changed}. ${pv.human_blind === pv.human_reviewed
+          ? "The review was blind (labels decided before seeing Claude's)."
+          : "The review was not blind (the reviewer saw Claude's labels), so it confirms them rather than adding an independent second annotation."}`
+      : "No person has reviewed them yet, so read the kappa below as agreement with Claude's labels, not with human judgement."}</div>
   <div class="figure">
     <div class="legend"><span><span class="sw" style="background:var(--faint)"></span>dev tasks (used for prompt tuning)</span>
       <span><span class="sw" style="background:var(--model-1)"></span>held-out test tasks</span></div>

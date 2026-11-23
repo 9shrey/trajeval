@@ -74,6 +74,7 @@ def export(out: Path, runs_dir: Path = RUNS_DIR, judge: str = "default") -> None
                          "rationale": labels.get(s["sample_id"], {}).get("rationale"),
                          "verdicts": {n: verdicts[n].get(s["sample_id"]) for n in names}} for s in samples],
             "label_sources": _count([labels.get(s["sample_id"], {}).get("labeled_by", "unlabelled") for s in samples]),
+            "provenance": _provenance(),
         }
         (out / "judge.json").write_text(_dump(judge_data, separators=(",", ":")))
 
@@ -87,7 +88,8 @@ def export(out: Path, runs_dir: Path = RUNS_DIR, judge: str = "default") -> None
                                        "meta": {k: runs[r]["meta"].get(k) for k in ("notes", "started", "git_rev")}}
                  for r in runs],
         "diffs": diffs,
-        "judge": {"agreement": judge_data["agreement"], "label_sources": judge_data["label_sources"]} if judge_data else None,
+        "judge": {"agreement": judge_data["agreement"], "label_sources": judge_data["label_sources"],
+                  "provenance": judge_data["provenance"]} if judge_data else None,
     }
     (out / "index.json").write_text(_dump(index, indent=1))
     print(f"exported {len(runs)} runs, {len(diffs)} diffs, judge={'yes' if judge_data else 'no'} -> {out}")
@@ -102,6 +104,14 @@ def _run_ci(run: dict) -> list[float]:
     pts = [t for t in per_task(run).values() if t["n"]]
     tot = lambda ts: sum(t["passes"] for t in ts) / max(1, sum(t["n"] for t in ts))  # noqa: E731
     return list(bootstrap_ci(pts, tot, n_boot=2000))
+
+
+def _provenance() -> dict:
+    """Who wrote the labels and how they were reviewed: shown verbatim on the dashboard."""
+    claude, human = load_labels(LABELS_DIR, "claude"), load_labels(LABELS_DIR, "human")
+    return {"drafted_by_claude": len(claude), "human_reviewed": len(human),
+            "human_blind": sum(bool(h.get("blind")) for h in human.values()),
+            "human_changed": sum(h["label"] != claude.get(k, {}).get("label") for k, h in human.items())}
 
 
 def _clean(x):

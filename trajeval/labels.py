@@ -123,29 +123,40 @@ def _count(xs):
     return d
 
 
-def review(labels_dir: Path = LABELS_DIR, reviewer: str = "human") -> None:
-    """Terminal review of Claude's labels. Every decision is saved immediately as a human label."""
+def review(labels_dir: Path = LABELS_DIR, reviewer: str = "human", blind: bool = True) -> None:
+    """Terminal review of the labelled samples. Every decision is saved immediately as a human label.
+
+    blind (default): you label each answer without seeing Claude's label; it is revealed after you
+    decide, and your first decision is what gets recorded. That keeps your labels independent, so
+    Claude-vs-human agreement is a real inter-annotator number. --show-claude shows it up front
+    (faster, but anchors you toward agreeing).
+    """
     samples = _read(labels_dir / "samples.jsonl")
     claude = load_labels(labels_dir, "claude")
     human = load_labels(labels_dir, "human")
     todo = [s for s in samples if s["sample_id"] not in human]
-    print(f"{len(human)} reviewed, {len(todo)} to go. Keys: a=agree, f=flip, p=pass, x=fail, s=skip, q=quit\n")
+    keys = "p=pass, x=fail, s=skip, q=quit" if blind else "a=agree, f=flip, p=pass, x=fail, s=skip, q=quit"
+    print(f"{len(human)} reviewed, {len(todo)} to go ({'blind' if blind else 'Claude label shown'}). Keys: {keys}")
+    print("The labelling rule is in labels/README.md. Progress is saved after every answer.\n")
     out = (labels_dir / "labels_human.jsonl").open("a")
-    for s in todo:
+    done, agreed = len(human), 0
+    for n, s in enumerate(todo, 1):
         c = claude.get(s["sample_id"], {})
         print("=" * 100)
-        print(f"{s['sample_id']}  task {s['task_id']}  ({s['split']})\n\nTASK: {s['prompt']}\n\nRUBRIC:")
+        print(f"[{done + n}/{len(samples)}] {s['sample_id']}  task {s['task_id']}  ({s['split']})\n")
+        print(f"TASK: {s['prompt']}\n\nRUBRIC (pass only if every point holds):")
         for i, r in enumerate(s["rubric"], 1):
             print(f"  {i}. {r}")
         print(f"\nREFERENCE: {s['reference']}\n\nANSWER:\n{s['answer']}\n")
-        if c:
+        if c and not blind:
             print(f"Claude's label: {c['label'].upper()}  ({c.get('rationale', '')})")
+        allowed = ("p", "x", "s", "q") if blind else ("a", "f", "p", "x", "s", "q")
         while True:
-            k = input("[a/f/p/x/s/q] > ").strip().lower()
+            k = input(f"[{'/'.join(allowed)}] > ").strip().lower()
             if k in ("a", "f") and not c:
                 print("no Claude label to agree with or flip; use p or x")
                 continue
-            if k in ("a", "f", "p", "x", "s", "q"):
+            if k in allowed:
                 break
         if k == "q":
             break
@@ -154,6 +165,28 @@ def review(labels_dir: Path = LABELS_DIR, reviewer: str = "human") -> None:
         label = {"a": c.get("label"), "f": {"pass": "fail", "fail": "pass"}.get(c.get("label")),
                  "p": "pass", "x": "fail"}[k]
         out.write(json.dumps({"sample_id": s["sample_id"], "label": label, "labeled_by": reviewer,
-                              "claude_label": c.get("label")}) + "\n")
+                              "blind": blind, "claude_label": c.get("label")}) + "\n")
         out.flush()
+        if blind and c:
+            same = c["label"] == label
+            agreed += same
+            print(f"-> saved {label.upper()}. Claude said {c['label'].upper()}"
+                  f"{'' if same else '  <-- disagreement: ' + c.get('rationale', '')}")
     out.close()
+    if blind and n:
+        print(f"\nThis session: you and Claude agreed on {agreed} answers. `trajeval agree` reports kappa.")
+
+
+def claude_vs_human(labels_dir: Path = LABELS_DIR) -> dict | None:
+    """Inter-annotator agreement between Claude's labels and the human review (blind rows only, if any)."""
+    claude, human = load_labels(labels_dir, "claude"), load_labels(labels_dir, "human")
+    rows = [h for h in human.values() if h["sample_id"] in claude]
+    blind_rows = [h for h in rows if h.get("blind")]
+    rows = blind_rows or rows
+    if not rows:
+        return None
+    a = [claude[h["sample_id"]]["label"] for h in rows]
+    b = [h["label"] for h in rows]
+    return {"n": len(rows), "blind": bool(blind_rows), "kappa": cohen_kappa(a, b),
+            "agreement": sum(x == y for x, y in zip(a, b)) / len(rows),
+            "confusion": confusion(a, b, ["pass", "fail"])}
