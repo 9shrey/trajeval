@@ -1,0 +1,41 @@
+<|im_start|>system
+You are an assistant for Kestrel Cycles, an e-bike company in Bengaluru, India. Today is 2025-10-24. Use the tools to look up facts instead of guessing, and only take actions (emails, files, meetings) that the user asked for. When you have what you need, reply to the user with the answer and no tool call.
+
+# Tools
+
+You may call one or more functions to assist with the user query.
+
+You are provided with function signatures within <tools></tools> XML tags:
+<tools>
+{"type": "function", "function": {"name": "list_dir", "description": "List the files and folders inside a directory of the company file system. Folders end with '/'.", "parameters": {"type": "object", "properties": {"path": {"type": "string", "description": "Directory path, e.g. '/' or '/docs'. Defaults to '/'."}}, "required": [], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "read_file", "description": "Read the full text of a file in the company file system.", "parameters": {"type": "object", "properties": {"path": {"type": "string", "description": "Absolute file path, e.g. '/docs/handbook.md'."}}, "required": ["path"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "write_file", "description": "Create or overwrite a text file in the company file system.", "parameters": {"type": "object", "properties": {"path": {"type": "string", "description": "Absolute file path."}, "content": {"type": "string", "description": "Full file content."}}, "required": ["path", "content"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "search_files", "description": "Case-insensitive text search across files; returns matching lines as path:line: text.", "parameters": {"type": "object", "properties": {"text": {"type": "string", "description": "Text to look for."}, "path": {"type": "string", "description": "Only search under this folder. Defaults to '/'."}}, "required": ["text"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "get_db_schema", "description": "Return the CREATE TABLE statements of the company SQL database (SQLite).", "parameters": {"type": "object", "properties": {}, "required": [], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "sql_query", "description": "Run a read-only SQL query (SQLite dialect) against the company database and return the rows.", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "A single SELECT statement."}}, "required": ["query"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "web_search", "description": "Search the web. Returns the top 3 results with title, URL and a snippet.", "parameters": {"type": "object", "properties": {"query": {"type": "string", "description": "Search query."}}, "required": ["query"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "fetch_page", "description": "Fetch the full text of a web page by URL.", "parameters": {"type": "object", "properties": {"url": {"type": "string", "description": "The page URL, as returned by web_search."}}, "required": ["url"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "calculate", "description": "Evaluate an arithmetic expression, e.g. '(84999 * 1.06) - 2000'. Supports + - * / ** % and round, min, max, abs, sqrt.", "parameters": {"type": "object", "properties": {"expression": {"type": "string", "description": "The expression to evaluate."}}, "required": ["expression"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "convert_currency", "description": "Convert an amount between currencies (INR, USD, EUR, GBP, JPY) at today's rate.", "parameters": {"type": "object", "properties": {"amount": {"type": "number", "description": "Amount to convert."}, "from_currency": {"type": "string", "description": "ISO code, e.g. 'USD'."}, "to_currency": {"type": "string", "description": "ISO code, e.g. 'INR'."}}, "required": ["amount", "from_currency", "to_currency"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "send_email", "description": "Send an email on behalf of the user.", "parameters": {"type": "object", "properties": {"to": {"type": "string", "description": "Recipient email address."}, "subject": {"type": "string", "description": "Subject line."}, "body": {"type": "string", "description": "Email body."}}, "required": ["to", "subject", "body"], "additionalProperties": false}}}
+{"type": "function", "function": {"name": "schedule_meeting", "description": "Create a calendar meeting and invite attendees.", "parameters": {"type": "object", "additionalProperties": false, "required": ["title", "date", "attendees"], "properties": {"title": {"type": "string", "description": "Meeting title."}, "date": {"type": "string", "description": "Date as YYYY-MM-DD."}, "attendees": {"type": "array", "items": {"type": "string"}, "description": "Attendee email addresses."}}}}}
+</tools>
+
+For each function call, return a json object with function name and arguments within <tool_call></tool_call> XML tags:
+<tool_call>
+{"name": <function-name>, "arguments": <args-json-object>}
+</tool_call><|im_end|>
+<|im_start|>user
+How many customers?<|im_end|>
+<|im_start|>assistant
+<tool_call>
+{"name": "sql_query", "arguments": {"query": "SELECT 1"}}
+</tool_call><|im_end|>
+<|im_start|>user
+<tool_response>
+1
+</tool_response>
+<tool_response>
+2
+</tool_response><|im_end|>
+<|im_start|>assistant

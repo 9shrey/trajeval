@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trajeval runs</title>
+<meta name="description" content="Agent evaluation results: tool-using Qwen2.5 agents on a 68-task suite, per-task regressions with Fisher/BH significance, and LLM-judge agreement with labels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;600&family=Atkinson+Hyperlegible+Next:ital,wght@0,400;0,600;0,750;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <a href="#/runs" class="name">trajeval</a>
+      <p class="lede">Tool-using agents graded trajectory by trajectory: what they answered, how they used their tools,
+        and whether a change made them worse, with significance attached.</p>
+    </div>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#/runs" data-tab="runs">Runs</a>
+      <a href="#/diffs" data-tab="diffs">Regressions</a>
+      <a href="#/judge" data-tab="judge">Judge agreement</a>
+      <a href="#/about" data-tab="about">How it works</a>
+    </nav>
+  </div>
+</header>
+<main id="view" class="wrap" tabindex="-1"><p class="muted">Loading results…</p></main>
+<div id="tip" role="tooltip" hidden></div>
+<footer class="wrap foot">
+  <p class="muted">Built by <code>trajeval export</code> from the run files in the repository.
+    <span id="generated"></span> Source: <a href="https://github.com/9shrey/trajeval">github.com/9shrey/trajeval</a>.</p>
+</footer>
+<script src="app.js"></script>
+</body>
+</html>

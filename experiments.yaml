@@ -1,0 +1,80 @@
+# Every run and comparison behind the README and the dashboard. scripts/reproduce.py executes
+# the runs (one model server at a time: the GPU has 4 GB); `trajeval export` reads the comparisons.
+#
+# Shared sampling for every run: temperature 0.7, top_p 0.8, top_k 20 (Qwen2.5's recommended
+# settings), 5 trials per task, max 8 LLM turns, 512 output tokens per turn.
+
+trials: 5
+
+# Server order is also execution order. vLLM settings are what fits a 4 GB card next to a desktop
+# session: vLLM's memory estimate refuses to start the 3B model, so the KV cache is sized explicitly.
+servers:
+  qwen3b-awq:
+    kind: vllm
+    model: Qwen/Qwen2.5-3B-Instruct-AWQ
+    served: qwen2.5-3b-awq
+    port: 8100
+    env: {GPU_UTIL: 0.8, MAX_BATCHED: 1024, MAX_SEQS: 12, EXTRA: "--kv-cache-memory-bytes 450M"}
+  qwen1.5b-awq:
+    kind: vllm
+    model: Qwen/Qwen2.5-1.5B-Instruct-AWQ
+    served: qwen2.5-1.5b-awq
+    port: 8100
+    env: {GPU_UTIL: 0.8, MAX_BATCHED: 1024, MAX_SEQS: 16, EXTRA: "--kv-cache-memory-bytes 900M"}
+  qwen0.5b:
+    kind: nanoserve
+    model: Qwen/Qwen2.5-0.5B-Instruct
+    served: Qwen/Qwen2.5-0.5B-Instruct
+    port: 8000
+
+# agent "text": trajeval parses <tool_call> tags itself (same parser for every model and server).
+# agent "native": the server parses tool calls (vLLM's hermes parser) and returns OpenAI tool_calls.
+runs:
+  qwen3b-v1:        {server: qwen3b-awq, agent: text, prompt: v1, seed: 0, trials: 3}
+  qwen3b-native-v1: {server: qwen3b-awq, agent: native, prompt: v1, seed: 0, trials: 3}
+  # The 1.5B experiments use prompt v2 as the baseline (it says where data lives); v2 -> v1 is the
+  # realistic "someone simplified the system prompt" change.
+  qwen1.5b-v2:      {server: qwen1.5b-awq, agent: text, prompt: v2, seed: 0}
+  qwen1.5b-v2-rerun: {server: qwen1.5b-awq, agent: text, prompt: v2, seed: 1}
+  qwen1.5b-v2-faults:
+    server: qwen1.5b-awq
+    agent: text
+    prompt: v2
+    seed: 2
+    # Chosen after seeing the baseline: an outage has to hit tasks the model can do, or there is
+    # nothing to detect. The affected set is still computed mechanically (faults.py).
+    faults: ["break:sql_query", "break:web_search", "break:convert_currency"]
+  qwen1.5b-v1:      {server: qwen1.5b-awq, agent: text, prompt: v1, seed: 0}
+  qwen0.5b-v1:      {server: qwen0.5b, agent: text, prompt: v1, seed: 0}
+  # Diagnostic: the harness makes each task's gold tool calls, then the model answers. Separates
+  # tool-use failures from answer-writing failures; also supplies passing open-ended answers for
+  # the judge-calibration set.
+  qwen3b-goldpath:  {server: qwen3b-awq, agent: gold-path, prompt: v1, seed: 0, trials: 3}
+  qwen1.5b-goldpath: {server: qwen1.5b-awq, agent: gold-path, prompt: v1, seed: 0, trials: 3}
+  qwen0.5b-goldpath: {server: qwen0.5b, agent: gold-path, prompt: v1, seed: 0, trials: 3}
+
+comparisons:
+  - {base: qwen1.5b-v2, cand: qwen1.5b-v2-rerun, title: "A/A: identical config, new seed", kind: aa}
+  - base: qwen1.5b-v2
+    cand: qwen1.5b-v2-faults
+    title: "Injected outage: SQL database, web search and FX service down"
+    kind: faults
+  - {base: qwen1.5b-v2, cand: qwen1.5b-v1, title: "Prompt simplified: v2 -> v1", kind: change}
+  - {base: qwen3b-v1, cand: qwen1.5b-v1, title: "Downgrade 3B -> 1.5B", kind: change}
+  - {base: qwen1.5b-v1, cand: qwen0.5b-v1, title: "Downgrade 1.5B -> 0.5B (nanoserve)", kind: change}
+  - {base: qwen3b-v1, cand: qwen3b-native-v1, title: "Same 3B model, tool calls parsed by vLLM instead of trajeval", kind: change}
+
+# Judge calibration: every config is run over labels/samples.jsonl (200 open-ended answers).
+# The -v2 config uses the prompt rewritten after reading the v1 judges' dev-split disagreements.
+# (Majority-of-3 configs exist in judge.py but were not run: at ~22 generated tok/s for the 3B
+# model on this GPU, three votes over 200 samples is over an hour per config.)
+judges:
+  - {server: qwen3b-awq, config: rubric, name: qwen3b-rubric}
+  - {server: qwen3b-awq, config: rubric+ref, name: qwen3b-rubric+ref}
+  - {server: qwen3b-awq, config: rubric+ref-v2, name: qwen3b-rubric+ref-v2}
+  - {server: qwen1.5b-awq, config: rubric, name: qwen1.5b-rubric}
+  - {server: qwen1.5b-awq, config: rubric+ref, name: qwen1.5b-rubric+ref}
+  - {server: qwen0.5b, config: rubric+ref, name: qwen0.5b-rubric+ref}
+
+# The judge that grades open-ended tasks in every run: the best dev-split kappa above.
+default_judge: {server: qwen3b-awq, config: rubric+ref}

@@ -1,0 +1,739 @@
+# Kestrel Cycles task suite.
+#
+# Every task has a gold trajectory (tool calls + final answer). tests/test_suite.py replays
+# each gold trajectory against a fresh world and asserts the checker passes it, so every
+# task is solvable and every checker accepts a correct answer.
+#
+# check types (all listed checks must pass):
+#   number:       final answer contains `value` (within `tol`, absolute)
+#   contains:     final answer contains every item; an item that is a list means any-of
+#   not_contains: final answer contains none of the items
+#   refusal:      final answer says the thing does not exist / cannot be found
+#   file:         world file `path` exists and contains every item of `contains`
+#   email:        an email to `to` was sent; subject/body contain the given items
+#   no_email:     no email was sent
+#   meeting:      a meeting on `date` with exactly `attendees` was created
+#   judge:        open-ended; graded by the LLM judge against `rubric` and `reference`
+#
+# gold.calls is the minimal tool path; its length is the efficiency baseline.
+
+# ---------------------------------------------------------------- lookup (single tool)
+- id: lookup-customers-bengaluru
+  category: lookup
+  prompt: How many customers do we have in Bengaluru?
+  check: [{type: number, value: 12}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT COUNT(*) FROM customers WHERE city = 'Bengaluru'"}}]
+    answer: We have 12 customers in Bengaluru.
+
+- id: lookup-order-status
+  category: lookup
+  prompt: What is the current status of order 1044?
+  check: [{type: contains, items: [shipped]}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT status FROM orders WHERE id = 1044"}}]
+    answer: Order 1044 has been shipped.
+
+- id: lookup-most-expensive-product
+  category: lookup
+  prompt: What is our most expensive product, and what does it cost?
+  check: [{type: contains, items: [X1 Pro]}, {type: number, value: 109999}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT name, price_inr FROM products ORDER BY price_inr DESC LIMIT 1"}}]
+    answer: The Trailblazer X1 Pro, at Rs 109999.
+
+- id: lookup-cancelled-orders
+  category: lookup
+  prompt: How many orders have been cancelled?
+  check: [{type: number, value: 5}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT COUNT(*) FROM orders WHERE status = 'cancelled'"}}]
+    answer: 5 orders have been cancelled.
+
+- id: lookup-manager
+  category: lookup
+  prompt: Who is Kunal Jain's manager?
+  check: [{type: contains, items: [Leela Narayan]}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT m.name FROM employees e JOIN employees m ON m.id = e.manager_id WHERE e.name = 'Kunal Jain'"}}]
+    answer: Kunal Jain's manager is Leela Narayan.
+
+- id: lookup-accessory-return-window
+  category: lookup
+  prompt: Within how many days can a customer return an unused helmet?
+  check: [{type: number, value: 30}]
+  gold:
+    calls: [{tool: read_file, args: {path: /docs/handbook.md}}]
+    answer: Unused accessories such as helmets can be returned within 30 days of delivery.
+
+- id: lookup-battery-warranty
+  category: lookup
+  prompt: What is the warranty on our batteries?
+  check: [{type: contains, items: [[2 years, two years, 2-year, two-year], "800"]}]
+  gold:
+    calls: [{tool: read_file, args: {path: /docs/handbook.md}}]
+    answer: Batteries are covered for 2 years or 800 charge cycles, whichever comes first.
+
+- id: lookup-log-error-count
+  category: lookup
+  prompt: How many ERROR lines are there in /logs/app.log?
+  check: [{type: number, value: 9}]
+  gold:
+    calls: [{tool: read_file, args: {path: /logs/app.log}}]
+    answer: There are 9 ERROR lines.
+
+- id: lookup-voltcell-ceo
+  category: lookup
+  prompt: Who is the CEO of Voltcell Energy?
+  check: [{type: contains, items: [Nandini Rao]}]
+  gold:
+    calls: [{tool: web_search, args: {query: Voltcell Energy CEO}}]
+    answer: Nandini Rao is the CEO of Voltcell Energy.
+
+- id: lookup-series-a-lead
+  category: lookup
+  prompt: Which investor led Kestrel Cycles' Series A round?
+  check: [{type: contains, items: [Banyan Peak]}]
+  gold:
+    calls: [{tool: web_search, args: {query: Kestrel Cycles Series A}}]
+    answer: The Series A was led by Banyan Peak Ventures.
+
+- id: lookup-calc-price-increase
+  category: lookup
+  prompt: What is 84,999 rupees increased by 6%, rounded to the nearest rupee?
+  check: [{type: number, value: 90099}]
+  gold:
+    calls: [{tool: calculate, args: {expression: "round(84999 * 1.06)"}}]
+    answer: Rs 90099.
+
+- id: lookup-fx-usd
+  category: lookup
+  prompt: Convert 5,400 US dollars to Indian rupees at today's rate.
+  check: [{type: number, value: 453600}]
+  gold:
+    calls: [{tool: convert_currency, args: {amount: 5400, from_currency: USD, to_currency: INR}}]
+    answer: 5,400 USD is Rs 453600.
+
+- id: lookup-lowest-stock-bengaluru
+  category: lookup
+  prompt: Which product has the lowest stock in the Bengaluru warehouse? Our inventory export is in /data.
+  check: [{type: contains, items: [X1 Pro]}, {type: number, value: 6}]
+  gold:
+    calls: [{tool: read_file, args: {path: /data/inventory.csv}}]
+    answer: The Trailblazer X1 Pro, with 6 units in Bengaluru.
+
+- id: lookup-high-priority-unresolved
+  category: lookup
+  prompt: How many high-priority support tickets are still unresolved (open or in progress)?
+  check: [{type: number, value: 1}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT COUNT(*) FROM tickets WHERE priority = 'high' AND status IN ('open', 'in_progress')"}}]
+    answer: 1 high-priority ticket is unresolved.
+
+# ---------------------------------------------------------------- multi-step
+- id: multi-revenue-bengaluru
+  category: multi_step
+  prompt: What is the total revenue (quantity times product price) from non-cancelled orders placed by customers based in Bengaluru?
+  check: [{type: number, value: 984480}]
+  gold:
+    calls:
+      - {tool: get_db_schema, args: {}}
+      - {tool: sql_query, args: {query: "SELECT SUM(o.quantity * p.price_inr) FROM orders o JOIN customers c ON c.id = o.customer_id JOIN products p ON p.id = o.product_id WHERE c.city = 'Bengaluru' AND o.status != 'cancelled'"}}
+    answer: Rs 984480.
+
+- id: multi-top-customer
+  category: multi_step
+  prompt: Which customer has spent the most on non-cancelled orders, and how much?
+  check: [{type: contains, items: [Lakshmi Krishnan]}, {type: number, value: 239997}]
+  gold:
+    calls:
+      - {tool: get_db_schema, args: {}}
+      - {tool: sql_query, args: {query: "SELECT c.name, SUM(o.quantity * p.price_inr) AS spent FROM orders o JOIN customers c ON c.id = o.customer_id JOIN products p ON p.id = o.product_id WHERE o.status != 'cancelled' GROUP BY c.id ORDER BY spent DESC LIMIT 3"}}
+    answer: Lakshmi Krishnan, who has spent Rs 239997.
+
+- id: multi-best-seller-units
+  category: multi_step
+  prompt: Which product has sold the most units across non-cancelled orders, and how many units?
+  check: [{type: contains, items: [Helmet]}, {type: number, value: 22}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT p.name, SUM(o.quantity) AS units FROM orders o JOIN products p ON p.id = o.product_id WHERE o.status != 'cancelled' GROUP BY p.id ORDER BY units DESC LIMIT 1"}}
+    answer: The Kestrel Helmet, with 22 units sold.
+
+- id: multi-unpaid-invoices-inr
+  category: multi_step
+  prompt: The invoices are in /invoices. What is the total amount of all unpaid invoices, in Indian rupees?
+  check: [{type: number, value: 1048825}]
+  gold:
+    calls:
+      - {tool: list_dir, args: {path: /invoices}}
+      - {tool: read_file, args: {path: /invoices/INV-2025-031.json}}
+      - {tool: read_file, args: {path: /invoices/INV-2025-034.json}}
+      - {tool: read_file, args: {path: /invoices/INV-2025-036.json}}
+      - {tool: read_file, args: {path: /invoices/INV-2025-037.json}}
+      - {tool: convert_currency, args: {amount: 5400, from_currency: USD, to_currency: INR}}
+      - {tool: convert_currency, args: {amount: 2150, from_currency: EUR, to_currency: INR}}
+      - {tool: calculate, args: {expression: "453600 + 196725 + 398500"}}
+    answer: The unpaid invoices total Rs 1048825.
+
+- id: multi-x1-new-price
+  category: multi_step
+  prompt: What will the Trailblazer X1 cost after the January 2026 price change? Round to the nearest rupee.
+  check: [{type: number, value: 90099}]
+  gold:
+    calls:
+      - {tool: search_files, args: {text: price change}}
+      - {tool: read_file, args: {path: /docs/pricing-2026.md}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'Trailblazer X1'"}}
+      - {tool: calculate, args: {expression: "round(84999 * 1.06)"}}
+    answer: The Trailblazer X1 will cost Rs 90099.
+
+- id: multi-battery-new-price
+  category: multi_step
+  prompt: What will the Battery Pack 48V cost after the January 2026 price change?
+  check: [{type: number, value: 19980}]
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /docs/pricing-2026.md}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'Battery Pack 48V'"}}
+      - {tool: calculate, args: {expression: "18500 * 1.08"}}
+    answer: Rs 19980.
+
+- id: multi-subsidy-x1
+  category: multi_step
+  prompt: How much subsidy would a Karnataka resident get under the state's 2025 EV scheme when buying a Trailblazer X1 from us?
+  check: [{type: number, value: 10000}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Karnataka EV scheme 2025 electric bicycle subsidy}}
+      - {tool: fetch_page, args: {url: "https://transport.karnataka.example/ev-scheme-2025"}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'Trailblazer X1'"}}
+      - {tool: calculate, args: {expression: "min(84999 * 0.15, 10000)"}}
+    answer: 15% of Rs 84999 is Rs 12749.85, which is above the cap, so the subsidy is Rs 10000.
+
+- id: multi-subsidy-x1-pro
+  category: multi_step
+  prompt: Would a Karnataka resident buying a Trailblazer X1 Pro get the 2025 state EV subsidy? If so, how much?
+  check: [{type: contains, items: [[not eligible, ineligible, not qualify, does not qualify, doesn't qualify, no subsidy, not get, not be eligible, would not receive, wouldn't receive, would not get, wouldn't get]]}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Karnataka EV scheme 2025 electric bicycle subsidy}}
+      - {tool: fetch_page, args: {url: "https://transport.karnataka.example/ev-scheme-2025"}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'Trailblazer X1 Pro'"}}
+    answer: No. The X1 Pro costs Rs 109999, and only bicycles below Rs 1,00,000 qualify, so it is not eligible.
+
+- id: multi-subsidy-cityhopper-s
+  category: multi_step
+  prompt: How much would a Karnataka resident save through the 2025 state EV subsidy on a CityHopper S?
+  check: [{type: number, value: 8999.85, tol: 1}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Karnataka EV scheme 2025 electric bicycle subsidy}}
+      - {tool: fetch_page, args: {url: "https://transport.karnataka.example/ev-scheme-2025"}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'CityHopper S'"}}
+      - {tool: calculate, args: {expression: "59999 * 0.15"}}
+    answer: 15% of Rs 59999, which is Rs 8999.85.
+
+- id: multi-x1-range-gap
+  category: multi_step
+  prompt: In TechTrail's review of the Trailblazer X1, how many km short of Kestrel's claimed range did their test fall?
+  check: [{type: number, value: 12}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: TechTrail Trailblazer X1 review}}
+      - {tool: fetch_page, args: {url: "https://techtrail.example/reviews/kestrel-trailblazer-x1"}}
+    answer: They measured 68 km against a claimed 80 km, 12 km short.
+
+- id: multi-investor-founder
+  category: multi_step
+  prompt: Who founded the venture firm that led Kestrel Cycles' Series A?
+  check: [{type: contains, items: [Arvind Kaul]}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Kestrel Cycles Series A}}
+      - {tool: web_search, args: {query: Banyan Peak Ventures founder}}
+    answer: Banyan Peak Ventures led the round; it was founded by Arvind Kaul.
+
+- id: multi-manager-email
+  category: multi_step
+  prompt: What is the email address of Deepa Raman's manager?
+  check: [{type: contains, items: [leela@kestrelcycles.example]}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT m.name, m.email FROM employees e JOIN employees m ON m.id = e.manager_id WHERE e.name = 'Deepa Raman'"}}]
+    answer: Her manager is Leela Narayan, leela@kestrelcycles.example.
+
+- id: multi-engineer-most-unresolved
+  category: multi_step
+  prompt: Which support engineer has the most unresolved (open or in progress) tickets assigned, and how many?
+  check: [{type: contains, items: [Deepa Raman]}, {type: number, value: 5}]
+  gold:
+    calls:
+      - {tool: get_db_schema, args: {}}
+      - {tool: sql_query, args: {query: "SELECT e.name, COUNT(*) AS n FROM tickets t JOIN employees e ON e.id = t.assignee_id WHERE t.status IN ('open', 'in_progress') GROUP BY e.id ORDER BY n DESC"}}
+    answer: Deepa Raman, with 5 unresolved tickets.
+
+- id: multi-log-top-error-service
+  category: multi_step
+  prompt: In /logs/app.log, which service logged the most ERROR lines, and how many?
+  check: [{type: contains, items: [payment]}, {type: number, value: 4}]
+  gold:
+    calls: [{tool: search_files, args: {text: ERROR, path: /logs}}]
+    answer: The payment service, with 4 ERROR lines.
+
+- id: multi-vendor-cost-difference
+  category: multi_step
+  prompt: For an order of 10,000 battery cells, how much cheaper in total would Ampere Works be than Voltcell, based on our vendor profiles?
+  check: [{type: number, value: 250000}]
+  gold:
+    calls:
+      - {tool: list_dir, args: {path: /vendors}}
+      - {tool: read_file, args: {path: /vendors/voltcell.md}}
+      - {tool: read_file, args: {path: /vendors/ampere-works.md}}
+      - {tool: calculate, args: {expression: "(290 - 265) * 10000"}}
+    answer: Ampere Works would be Rs 250000 cheaper.
+
+- id: multi-avg-ebike-order
+  category: multi_step
+  prompt: What is the average value of a non-cancelled e-bike order, in rupees?
+  check: [{type: number, value: 77499}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT AVG(o.quantity * p.price_inr) FROM orders o JOIN products p ON p.id = o.product_id WHERE p.category = 'e-bike' AND o.status != 'cancelled'"}}
+    answer: Rs 77499.
+
+- id: multi-city-most-orders
+  category: multi_step
+  prompt: Customers from which city have placed the most non-cancelled orders, and how many?
+  check: [{type: contains, items: [Bengaluru]}, {type: number, value: 17}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT c.city, COUNT(*) AS n FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.status != 'cancelled' GROUP BY c.city ORDER BY n DESC LIMIT 1"}}
+    answer: Bengaluru, with 17 orders.
+
+- id: multi-weight-difference
+  category: multi_step
+  prompt: According to TechTrail's reviews, how many kg lighter is the CityHopper Fold than the Trailblazer X1?
+  check: [{type: number, value: 6.5, tol: 0.01}]
+  gold:
+    calls:
+      - {tool: web_search, args: {query: TechTrail CityHopper Fold review}}
+      - {tool: web_search, args: {query: TechTrail Trailblazer X1 review weight}}
+      - {tool: fetch_page, args: {url: "https://techtrail.example/reviews/kestrel-trailblazer-x1"}}
+    answer: The Fold weighs 17.5 kg and the X1 24 kg, so the Fold is 6.5 kg lighter.
+
+- id: multi-action-owner-email
+  category: multi_step
+  prompt: What is the email address of the person who owns the Ampere Works trial-order action item from the 20 October ops meeting?
+  check: [{type: contains, items: [shalini@kestrelcycles.example]}]
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /notes/meeting-2025-10-20.md}}
+      - {tool: sql_query, args: {query: "SELECT email FROM employees WHERE name = 'Shalini Mohan'"}}
+    answer: Shalini Mohan owns it; her email is shalini@kestrelcycles.example.
+
+- id: multi-customer-undelivered
+  category: multi_step
+  prompt: How many orders has Harsh Bhat placed, and how many of those have not been delivered yet?
+  check: [{type: number, value: 5}, {type: number, value: 3}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT o.id, o.status FROM orders o JOIN customers c ON c.id = o.customer_id WHERE c.name = 'Harsh Bhat'"}}
+    answer: Harsh Bhat has placed 5 orders; 3 of them are not delivered yet.
+
+# ---------------------------------------------------------------- actions (state change)
+- id: action-write-error-count
+  category: action
+  prompt: Count the ERROR lines in /logs/app.log and save just that number to /reports/error_count.txt.
+  check: [{type: file, path: /reports/error_count.txt, contains: ["9"], not_contains: ["10", "8"]}]
+  gold:
+    calls:
+      - {tool: search_files, args: {text: ERROR, path: /logs}}
+      - {tool: write_file, args: {path: /reports/error_count.txt, content: "9"}}
+    answer: Saved 9 to /reports/error_count.txt.
+
+- id: action-email-escalation
+  category: action
+  prompt: Email our Head of Support with the subject "Ticket 18 escalation", saying that ticket 18 has been open since 27 June and needs escalating.
+  check: [{type: email, to: leela@kestrelcycles.example, subject_contains: ["18"], body_contains: ["18"]}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT name, email FROM employees WHERE title = 'Head of Support'"}}
+      - {tool: send_email, args: {to: leela@kestrelcycles.example, subject: Ticket 18 escalation, body: "Hi Leela, ticket 18 has been open since 27 June and needs escalating."}}
+    answer: Emailed Leela Narayan about ticket 18.
+
+- id: action-meeting-vendor-review
+  category: action
+  prompt: Schedule a meeting titled "Cell vendor review" on 2025-10-30 with Shalini Mohan and Tenzin Dorje.
+  check: [{type: meeting, date: "2025-10-30", attendees: [shalini@kestrelcycles.example, tenzin@kestrelcycles.example]}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT name, email FROM employees WHERE name IN ('Shalini Mohan', 'Tenzin Dorje')"}}
+      - {tool: schedule_meeting, args: {title: Cell vendor review, date: "2025-10-30", attendees: [shalini@kestrelcycles.example, tenzin@kestrelcycles.example]}}
+    answer: Scheduled "Cell vendor review" on 2025-10-30 with Shalini and Tenzin.
+
+- id: action-email-order-status
+  category: action
+  prompt: Email the customer Nikhil Joshi to tell him the current status of his order 1044.
+  check: [{type: email, to: nikhil.joshi@mailbox.example, body_contains: [shipped]}]
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT o.status, c.email FROM orders o JOIN customers c ON c.id = o.customer_id WHERE o.id = 1044"}}
+      - {tool: send_email, args: {to: nikhil.joshi@mailbox.example, subject: Your order 1044, body: "Hi Nikhil, your order 1044 has been shipped."}}
+    answer: Emailed Nikhil that order 1044 has shipped.
+
+- id: action-write-unpaid-list
+  category: action
+  prompt: Create /reports/unpaid_invoices.txt listing the IDs of all unpaid invoices in /invoices, one per line.
+  check: [{type: file, path: /reports/unpaid_invoices.txt, contains: [INV-2025-034, INV-2025-036, INV-2025-037], not_contains: [INV-2025-031]}]
+  gold:
+    calls:
+      - {tool: search_files, args: {text: unpaid, path: /invoices}}
+      - {tool: write_file, args: {path: /reports/unpaid_invoices.txt, content: "INV-2025-034\nINV-2025-036\nINV-2025-037\n"}}
+    answer: Wrote the three unpaid invoice IDs to /reports/unpaid_invoices.txt.
+
+- id: action-email-action-item
+  category: action
+  prompt: Send Ravi Shankar an email reminding him of his action item from the 20 October operations meeting.
+  check: [{type: email, to: ravi@kestrelcycles.example, body_contains: [[rate limit, rate-limit]]}]
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /notes/meeting-2025-10-20.md}}
+      - {tool: sql_query, args: {query: "SELECT email FROM employees WHERE name = 'Ravi Shankar'"}}
+      - {tool: send_email, args: {to: ravi@kestrelcycles.example, subject: "Reminder: action item from 20 Oct ops sync", body: "Hi Ravi, a reminder to ask the warehouse software vendor to raise the API rate limit (due 24 Oct)."}}
+    answer: Sent Ravi a reminder about raising the warehouse API rate limit.
+
+- id: action-meeting-postmortem
+  category: action
+  prompt: Schedule a post-incident review for the September checkout outage on 2025-10-28. Invite the incident owner and the on-call engineer who was paged.
+  check: [{type: meeting, date: "2025-10-28", attendees: [abhay@kestrelcycles.example, kunal@kestrelcycles.example]}]
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /incidents/2025-09-14-checkout-outage.md}}
+      - {tool: sql_query, args: {query: "SELECT name, email FROM employees WHERE name IN ('Abhay Thakur', 'Kunal Jain')"}}
+      - {tool: schedule_meeting, args: {title: Checkout outage post-incident review, date: "2025-10-28", attendees: [abhay@kestrelcycles.example, kunal@kestrelcycles.example]}}
+    answer: Scheduled the review on 2025-10-28 with Abhay Thakur and Kunal Jain.
+
+- id: action-write-helmet-total
+  category: action
+  prompt: Write the total number of helmets in stock across both warehouses to /reports/helmets.txt.
+  check: [{type: file, path: /reports/helmets.txt, contains: ["225"]}]
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /data/inventory.csv}}
+      - {tool: calculate, args: {expression: "140 + 85"}}
+      - {tool: write_file, args: {path: /reports/helmets.txt, content: "225"}}
+    answer: Wrote 225 to /reports/helmets.txt.
+
+# ---------------------------------------------------------------- traps
+- id: trap-missing-order
+  category: trap
+  prompt: What is the status of order 2077?
+  check: [{type: refusal}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT status FROM orders WHERE id = 2077"}}]
+    answer: There is no order 2077 in our database.
+
+- id: trap-missing-customer
+  category: trap
+  prompt: Which city is our customer Arnav Kapoor from?
+  check: [{type: refusal}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT city FROM customers WHERE name LIKE '%Arnav%'"}}]
+    answer: I could not find a customer named Arnav Kapoor.
+
+- id: trap-do-not-email
+  category: trap
+  prompt: Who at Kestrel should I talk to about a battery firmware bug? Don't email anyone, just tell me the name.
+  check: [{type: contains, items: [[Mira Fernandes, Tenzin Dorje]]}, {type: no_email}]
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT name, title FROM employees WHERE team = 'Engineering'"}}]
+    answer: Talk to Mira Fernandes, our firmware engineer.
+
+- id: trap-missing-file
+  category: trap
+  prompt: Summarise the incident report /incidents/2025-08-01-data-loss.md in one sentence.
+  check: [{type: refusal}]
+  gold:
+    calls: [{tool: read_file, args: {path: /incidents/2025-08-01-data-loss.md}}]
+    answer: That file does not exist, so there is nothing to summarise.
+
+- id: trap-missing-review
+  category: trap
+  prompt: What rating did TechTrail give the Sparrow Swift E2 in its review?
+  check: [{type: refusal}]
+  gold:
+    calls: [{tool: web_search, args: {query: TechTrail Sparrow Swift E2 review rating}}]
+    answer: I could not find a TechTrail review of the Swift E2.
+
+- id: trap-no-tool-needed
+  category: trap
+  prompt: What is 15 multiplied by 4?
+  check: [{type: number, value: 60}]
+  gold:
+    calls: []
+    answer: "60"
+
+# ---------------------------------------------------------------- open-ended (LLM judge)
+- id: open-incident-summary-checkout
+  category: open_ended
+  prompt: Summarise the 14 September checkout outage for the leadership team in two or three sentences, covering impact, root cause and fix.
+  check: [{type: judge}]
+  rubric:
+    - "States the root cause: an expired TLS certificate on the payment webhook endpoint, because its auto-renewal cron job was disabled during the 2 September migration."
+    - "States the fix: the certificate was renewed and renewal re-enabled, and/or an expiry alert was added."
+    - "Gives at least one correct impact figure: 85 minutes (19:40-21:05 IST), about 140 failed checkouts, about Rs 6.2 lakh delayed, or 23 orders lost."
+    - "Contains no figure or cause that contradicts the incident report."
+  reference: "On 14 September checkout payments failed for 85 minutes (19:40-21:05 IST), causing about 140 failed checkouts and roughly Rs 6.2 lakh of delayed orders, 23 of which were never completed. The cause was an expired TLS certificate on the payment webhook endpoint, whose auto-renewal job had been disabled during the 2 September server migration. We renewed the certificate, re-enabled renewal, and added an alert 14 days before any certificate expires."
+  gold:
+    calls: [{tool: read_file, args: {path: /incidents/2025-09-14-checkout-outage.md}}]
+
+- id: open-incident-battery-explainer
+  category: open_ended
+  prompt: Explain the October battery range issue to our customer-support team in a short, non-technical paragraph they can use with customers.
+  check: [{type: judge}]
+  rubric:
+    - "Explains that a firmware update (v2.3.1) made the range estimate drop to 0 km while the battery still had about 20% charge."
+    - "Reassures that bikes kept working / there was no safety issue."
+    - "Says it is fixed: rolled back and/or v2.3.2 released (installs automatically)."
+    - "Contains no claim that contradicts the incident report (e.g. a recall, a fire risk, or that customers must visit a service centre)."
+  reference: "An over-the-air battery firmware update (v2.3.1) at the end of September had a bug that made some Battery Pack 48V owners see their range estimate fall to 0 km while about 20% charge remained. The bikes still worked, with pedal assist at its lowest level, and there was no safety risk. We rolled affected bikes back within days and released a corrected version, v2.3.2, on 10 October; it installs automatically when the bike connects to the app over Wi-Fi."
+  gold:
+    calls: [{tool: read_file, args: {path: /incidents/2025-10-02-battery-firmware.md}}]
+
+- id: open-vendor-recommendation
+  category: open_ended
+  prompt: Compare Voltcell and Ampere Works as battery-cell suppliers using our vendor profiles, and recommend which one to use for the next order, in three or four sentences.
+  check: [{type: judge}]
+  rubric:
+    - "Recommends Voltcell for the next order (optionally with a second Ampere Works trial), or otherwise gives a recommendation consistent with Ampere's failed tests and engineering's request for another trial."
+    - "Cites at least two correct comparisons: price Rs 290 vs Rs 265 per cell, lead time 3 vs 6 weeks, defect rate 0.4% vs 1.1%, minimum order 5,000 vs 10,000, capacity 4.8 vs 5.0 Ah."
+    - "Contains no incorrect figure for either vendor."
+  reference: "Ampere Works is cheaper (Rs 265 vs Rs 290 per cell) and its cells hold more charge (5.0 vs 4.8 Ah), but its lead time is twice as long (6 vs 3 weeks), its minimum order is 10,000 cells, its trial batch had a 1.1% defect rate against Voltcell's 0.4%, and it failed two of our ten cycle-life tests. Use Voltcell for the next order and run the second Ampere Works trial engineering asked for before moving any volume."
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /vendors/voltcell.md}}
+      - {tool: read_file, args: {path: /vendors/ampere-works.md}}
+
+- id: open-customer-reply-1044
+  category: open_ended
+  prompt: Our customer Nikhil Joshi is asking where his order 1044 is. Look it up and draft a short, polite reply to him.
+  check: [{type: judge}]
+  rubric:
+    - "Says the order (a Trailblazer X1 Pro) has been shipped / is in transit, consistent with the database."
+    - "Does not invent a tracking number, courier, or delivery date, and does not claim it was delivered."
+    - "Is polite and addressed to the customer; acknowledging the delay or offering to follow up is a plus but not required."
+  reference: "Hi Nikhil, thanks for getting in touch. Your order 1044 (Trailblazer X1 Pro) shows as shipped in our system. Since it was placed on 1 January, it has clearly taken far longer than it should, so I have escalated it to our operations team and will update you as soon as I hear back. Sorry for the wait."
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT o.*, p.name FROM orders o JOIN products p ON p.id = o.product_id WHERE o.id = 1044"}}]
+
+- id: open-billing-bug
+  category: open_ended
+  prompt: Review /src/billing.py. Does order_total do what its docstring says? Explain any bug and how to fix it.
+  check: [{type: judge}]
+  rubric:
+    - "Identifies that GST is computed on the undiscounted subtotal instead of the discounted price."
+    - "Explains the effect: customers with a discount are overcharged tax (no effect when discount is 0)."
+    - "Gives the fix: compute tax on the discounted amount (tax = discounted * rate)."
+  reference: "No. The docstring says GST is added on the discounted price, but the code computes tax = subtotal * rate, i.e. on the pre-discount subtotal. Any order with a discount is overcharged GST (orders without a discount are unaffected). Fix it by computing tax = discounted * GST_RATE[category]."
+  gold:
+    calls: [{tool: read_file, args: {path: /src/billing.py}}]
+
+- id: open-x1-review-summary
+  category: open_ended
+  prompt: Summarise TechTrail's review of the Trailblazer X1 for our product team, covering what the reviewer liked and disliked.
+  check: [{type: judge}]
+  rubric:
+    - "Mentions the 8.2/10 rating or the tested range of 68 km versus the claimed 80 km."
+    - "Mentions at least one like (solid frame/build, good app, hydraulic brakes) and at least one dislike (24 kg weight, range below claim, no front suspension lockout)."
+    - "Contains no likes, dislikes or figures that are not in the review."
+  reference: "TechTrail rated the X1 8.2/10 and called it the best-built e-bike they have tested under Rs 1 lakh. They liked the solid frame, the app and the hydraulic brakes. They disliked the 24 kg weight, range below our claim (68 km tested vs 80 km claimed) and the lack of a front suspension lockout. Charging takes 4.5 hours, or 2.5 with the Fast Charger."
+  gold:
+    calls:
+      - {tool: web_search, args: {query: TechTrail Trailblazer X1 review}}
+      - {tool: fetch_page, args: {url: "https://techtrail.example/reviews/kestrel-trailblazer-x1"}}
+
+- id: open-meeting-action-items
+  category: open_ended
+  prompt: List the action items from the 20 October operations meeting, with the owner and due date of each.
+  check: [{type: judge}]
+  rubric:
+    - "Lists all five action items."
+    - "Each action is attributed to the correct owner (Ravi: rate limit; Shalini: Ampere trial order; Leela: oldest tickets; Ritu: price announcement; Gaurav: sales forecast)."
+    - "Due dates, where given, are correct (24 Oct, 31 Oct, 23 Oct, 7 Nov, 27 Oct)."
+  reference: "Ravi Shankar: ask the warehouse software vendor to raise the API rate limit (24 Oct). Shalini Mohan: place a second 2,000-cell trial order with Ampere Works (31 Oct). Leela Narayan: escalate and close the three oldest open tickets (23 Oct). Ritu Bhatia: draft the January 2026 price-change announcement (7 Nov). Gaurav Malhotra: share the festive-season sales forecast by city (27 Oct)."
+  gold:
+    calls: [{tool: read_file, args: {path: /notes/meeting-2025-10-20.md}}]
+
+- id: open-competitor-brief
+  category: open_ended
+  prompt: Write a short brief on Sparrow Motors' new e-bike and how its price compares with our CityHopper S.
+  check: [{type: judge}]
+  rubric:
+    - "Identifies the Sparrow Swift E2 at Rs 54,999 and the CityHopper S at Rs 59,999 (Rs 5,000 more expensive)."
+    - "Mentions at least one other correct detail of the Swift E2 (60 km claimed range, 3-hour charge, Hyderabad-based maker, seen as a direct rival)."
+    - "Contains no incorrect price or specification."
+  reference: "Sparrow Motors (Hyderabad) launched the Swift E2 e-bike in September 2025 at Rs 54,999, with a claimed 60 km range and a 3-hour charge. Our CityHopper S costs Rs 59,999, so the Swift E2 undercuts it by Rs 5,000, and analysts see it as a direct rival."
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Sparrow Motors new e-bike}}
+      - {tool: sql_query, args: {query: "SELECT price_inr FROM products WHERE name = 'CityHopper S'"}}
+
+- id: open-q3-sales-summary
+  category: open_ended
+  prompt: Write a short summary of sales by product category for orders placed in Q3 2025 (July to September), excluding cancelled orders.
+  check: [{type: judge}]
+  rubric:
+    - "Gives e-bike revenue of Rs 644,992 (8 orders) as the largest category."
+    - "Gives correct figures for at least two of the other categories: accessories Rs 27,490 (6 orders), parts Rs 18,500 (1), services Rs 11,997 (2); or the correct total Rs 702,979."
+    - "Contains no incorrect figure."
+  reference: "Q3 2025 (non-cancelled): e-bikes Rs 644,992 from 8 orders, accessories Rs 27,490 from 6 orders, parts Rs 18,500 from 1 order and service plans Rs 11,997 from 2 orders, Rs 702,979 in total. E-bikes were about 92% of revenue."
+  gold:
+    calls:
+      - {tool: get_db_schema, args: {}}
+      - {tool: sql_query, args: {query: "SELECT p.category, SUM(o.quantity * p.price_inr), COUNT(*) FROM orders o JOIN products p ON p.id = o.product_id WHERE o.status != 'cancelled' AND o.order_date BETWEEN '2025-07-01' AND '2025-09-30' GROUP BY p.category"}}
+
+- id: open-support-backlog
+  category: open_ended
+  prompt: Give our Head of Support a short status update on unresolved tickets (open or in progress) - how many there are and which are the oldest.
+  check: [{type: judge}]
+  rubric:
+    - "Says there are 9 unresolved tickets (5 open, 4 in progress)."
+    - "Identifies ticket 18 (opened 27 June, 'Order not delivered yet') as the oldest."
+    - "Contains no incorrect ticket facts."
+  reference: "There are 9 unresolved tickets, 5 open and 4 in progress. The oldest are ticket 18 (opened 27 June, order not delivered yet), ticket 11 (2 July, brake squeal after rain) and tickets 1 and 4 (9 and 19 July). All are well past the 10-day escalation threshold."
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT id, opened, status, priority, subject FROM tickets WHERE status IN ('open', 'in_progress') ORDER BY opened"}}]
+
+- id: open-helmet-return-reply
+  category: open_ended
+  prompt: A customer received a helmet 20 days ago, has not used it, and wants to return it. Draft a reply explaining whether they can and how the refund works.
+  check: [{type: judge}]
+  rubric:
+    - "Says yes, the return is allowed (unused accessories within 30 days of delivery)."
+    - "Says the refund goes to the original payment method within 5 business days of approval."
+    - "Contains no invented conditions or fees."
+  reference: "Yes, you can return it. Unused accessories such as helmets can be returned within 30 days of delivery for a full refund, and you are at day 20. Once we approve the return, the refund goes back to your original payment method within 5 business days."
+  gold:
+    calls: [{tool: read_file, args: {path: /docs/handbook.md}}]
+
+- id: open-ebike-return-reply
+  category: open_ended
+  prompt: A customer bought a CityHopper S 10 days ago and has ridden it 120 km. They want to return it. Draft a reply.
+  check: [{type: judge}]
+  rubric:
+    - "Says the return is not possible under the policy because the bike has more than 50 km on the odometer (even though it is within 14 days)."
+    - "Is polite; offering help or alternatives is a plus."
+    - "Does not promise a refund or invent an exception."
+  reference: "Thank you for reaching out. Our policy allows e-bike returns within 14 days of delivery only if the odometer shows under 50 km; at 120 km we are unable to accept a return. If something about the bike is not working for you, we would be glad to help with a service check or adjustments."
+  gold:
+    calls: [{tool: read_file, args: {path: /docs/handbook.md}}]
+
+- id: open-funding-brief
+  category: open_ended
+  prompt: Write a two-sentence paragraph about Kestrel Cycles' Series A funding for a new employee's onboarding document.
+  check: [{type: judge}]
+  rubric:
+    - "States $12 million, led by Banyan Peak Ventures."
+    - "Mentions the date (March 2025) or Orbit Capital or the use of funds (experience centres in 20 cities, battery-pack assembly in Pune)."
+    - "Contains no incorrect fact."
+  reference: "In March 2025 Kestrel Cycles raised a $12 million Series A led by Banyan Peak Ventures, with Orbit Capital participating. The money is funding experience centres in 20 cities and a battery-pack assembly line in Pune."
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Kestrel Cycles Series A}}
+      - {tool: fetch_page, args: {url: "https://startupwire.example/2025/03/kestrel-cycles-series-a"}}
+
+- id: open-subsidy-explainer
+  category: open_ended
+  prompt: Explain to a Bengaluru customer which of our e-bikes qualify for the Karnataka 2025 EV subsidy and roughly how much they would save on each.
+  check: [{type: judge}]
+  rubric:
+    - "Says the Trailblazer X1 Pro does not qualify (price at or above Rs 1,00,000)."
+    - "Gives roughly correct savings for the qualifying bikes: Trailblazer X1 Rs 10,000 (capped), CityHopper S about Rs 9,000, CityHopper Fold about Rs 9,750."
+    - "Contains no incorrect eligibility rule or amount."
+  reference: "Under the scheme you get 15% off the ex-showroom price, up to Rs 10,000, on bikes priced under Rs 1,00,000. That means Rs 10,000 off the Trailblazer X1 (15% would be Rs 12,750, so the cap applies), about Rs 9,000 off the CityHopper S and about Rs 9,750 off the CityHopper Fold. The Trailblazer X1 Pro (Rs 1,09,999) does not qualify."
+  gold:
+    calls:
+      - {tool: web_search, args: {query: Karnataka EV scheme 2025 electric bicycle subsidy}}
+      - {tool: fetch_page, args: {url: "https://transport.karnataka.example/ev-scheme-2025"}}
+      - {tool: sql_query, args: {query: "SELECT name, price_inr FROM products WHERE category = 'e-bike'"}}
+
+- id: open-price-announcement
+  category: open_ended
+  prompt: Draft a short customer announcement of the January 2026 e-bike price changes, including each e-bike's new price.
+  check: [{type: judge}]
+  rubric:
+    - "Gives new prices within Rs 1 of: Trailblazer X1 Rs 90,099; Trailblazer X1 Pro Rs 1,14,399; CityHopper Fold Rs 68,249; and says the CityHopper S stays at Rs 59,999."
+    - "States the change takes effect from 1 January 2026."
+    - "Contains no incorrect price or percentage."
+  reference: "From 1 January 2026 our e-bike prices change: Trailblazer X1 Rs 90,099 (+6%), Trailblazer X1 Pro Rs 1,14,399 (+4%), CityHopper Fold Rs 68,249 (+5%). The CityHopper S stays at Rs 59,999."
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /docs/pricing-2026.md}}
+      - {tool: sql_query, args: {query: "SELECT name, price_inr FROM products WHERE category = 'e-bike'"}}
+      - {tool: calculate, args: {expression: "round(84999 * 1.06)"}}
+      - {tool: calculate, args: {expression: "round(109999 * 1.04)"}}
+      - {tool: calculate, args: {expression: "round(64999 * 1.05)"}}
+
+- id: open-log-health
+  category: open_ended
+  prompt: Look at /logs/app.log and write a short health summary of the system for this morning's stand-up.
+  check: [{type: judge}]
+  rubric:
+    - "Mentions payment gateway timeouts (4 errors) that were retried successfully."
+    - "Mentions inventory sync failures caused by the Pune warehouse (PUN-1) API returning 503, and the database connection pool being exhausted briefly."
+    - "Contains no invented outage or error that is not in the log."
+  reference: "Mostly healthy, with three recurring issues: 4 payment-gateway timeouts (orders 1061, 1062, 1064), all of which succeeded on retry, plus latency warnings; 2 inventory syncs failed because the Pune warehouse API (PUN-1) returned 503, while the other syncs completed; and the DB connection pool was briefly exhausted at 08:52 before recovering. Also one unhandled KeyError on /tickets/18."
+  gold:
+    calls: [{tool: read_file, args: {path: /logs/app.log}}]
+
+- id: open-cycle-day-invite
+  category: open_ended
+  prompt: Draft a short internal Slack message inviting the team to help out at Bengaluru Cycle Day.
+  check: [{type: judge}]
+  rubric:
+    - "Gives the correct date (Sunday 16 November) and place (Cubbon Park)."
+    - "Mentions what Kestrel is doing there (sponsoring and/or free e-bike test rides near the bandstand) or the time (6:30-11:00)."
+    - "Contains no incorrect detail."
+  reference: "Bengaluru Cycle Day is on Sunday 16 November at Cubbon Park, 6:30-11:00. We're a sponsor and will run free e-bike test rides near the bandstand. Reply here if you can help out for a shift!"
+  gold:
+    calls: [{tool: web_search, args: {query: Bengaluru Cycle Day 2025}}]
+
+- id: open-customer-profile
+  category: open_ended
+  prompt: Give me a short profile of our customer Aisha Kamath - where she is based, when she joined, and what she has bought.
+  check: [{type: judge}]
+  rubric:
+    - "Says she is in Mumbai and joined on 11 September 2024 (2024-09-11)."
+    - "Lists her purchases correctly: Fast Charger x2, Kestrel Helmet x3 and x1, Service Plan 1yr x2 (4 orders, about Rs 27,992 total)."
+    - "Does not list any product she did not buy."
+  reference: "Aisha Kamath is a Mumbai customer who joined on 11 September 2024. She has placed 4 orders, all delivered: 2 Fast Chargers (June 2025), 3 Kestrel Helmets (July), 2 one-year Service Plans (July) and another helmet (September), Rs 27,992 in total."
+  gold:
+    calls:
+      - {tool: sql_query, args: {query: "SELECT * FROM customers WHERE name = 'Aisha Kamath'"}}
+      - {tool: sql_query, args: {query: "SELECT o.id, p.name, o.quantity, o.order_date, o.status FROM orders o JOIN products p ON p.id = o.product_id WHERE o.customer_id = 26"}}
+
+- id: open-price-rise-reason
+  category: open_ended
+  prompt: Why are we raising some prices in January 2026? Use our internal documents and any public data you can find.
+  check: [{type: judge}]
+  rubric:
+    - "Says battery-cell costs rose in Q3 2025 (from the internal pricing doc)."
+    - "Supports it with public data: lithium carbonate rose from about $9,100 to $10,400 per tonne between Q2 and Q3 2025, and/or cell makers passed on the increase."
+    - "Contains no incorrect figure."
+  reference: "Battery-cell costs rose in Q3 2025, which is why the battery-heavy products go up. Public data backs this up: battery-grade lithium carbonate averaged $10,400 per tonne in Q3 2025, up from $9,100 in Q2, and Indian cell makers passed part of that increase on to customers in October."
+  gold:
+    calls:
+      - {tool: read_file, args: {path: /docs/pricing-2026.md}}
+      - {tool: web_search, args: {query: lithium prices Q3 2025}}
+
+- id: open-ops-team-structure
+  category: open_ended
+  prompt: Describe the structure of our Operations team - who leads it and who reports to them, with their roles.
+  check: [{type: judge}]
+  rubric:
+    - "Says Ritu Bhatia (Head of Operations) leads the team."
+    - "Says Shalini Mohan (Supply Chain Lead) and Ravi Shankar (Warehouse Manager) report to her."
+    - "Contains no person who is not in Operations or any wrong title."
+  reference: "Operations is led by Ritu Bhatia, Head of Operations, based in Pune, who reports to the CEO. Two people report to her, both in Pune - Shalini Mohan, Supply Chain Lead, and Ravi Shankar, Warehouse Manager."
+  gold:
+    calls: [{tool: sql_query, args: {query: "SELECT name, title, manager_id FROM employees WHERE team = 'Operations'"}}]

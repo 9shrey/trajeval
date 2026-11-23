@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.dl*.log
+task_plan.md
+progress.md
+findings.md
+runs/_scratch/
+logs/
+dashboard/data/
+runs/*/results.jsonl

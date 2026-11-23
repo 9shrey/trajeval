@@ -1,0 +1,200 @@
+{"sample_id": "s085", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "could not find the issue; substitutes X1 review range figures"}
+{"sample_id": "s090", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no facts; wrongly ties the date to the Series A"}
+{"sample_id": "s093", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented 150 customers and a $20,000 loss; wrong cause"}
+{"sample_id": "s095", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no summary found; the incident report exists in /incidents"}
+{"sample_id": "s000", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there are no bugs"}
+{"sample_id": "s001", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no review; narrates running the function"}
+{"sample_id": "s002", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "talks about a SQL query, not billing.py"}
+{"sample_id": "s003", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says order_total does not exist"}
+{"sample_id": "s004", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: finds the bug and gives the right fix, but never says discounted orders are overcharged (R2)"}
+{"sample_id": "s005", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: finds the bug and gives the right fix, but never says discounted orders are overcharged (R2)"}
+{"sample_id": "s006", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a different function signature and bug"}
+{"sample_id": "s007", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the function works; the proposed fix is the original buggy code"}
+{"sample_id": "s008", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there are no bugs"}
+{"sample_id": "s009", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong diagnosis; the fix keeps tax = subtotal * rate"}
+{"sample_id": "s010", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "does not give the CityHopper S price"}
+{"sample_id": "s011", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a CityHopper S price range (50-60k)"}
+{"sample_id": "s012", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no CityHopper S price; invents an 80 km CityHopper S range"}
+{"sample_id": "s013", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it found nothing"}
+{"sample_id": "s014", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a CityHopper S price range (50-60k)"}
+{"sample_id": "s015", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "does not give the CityHopper S price"}
+{"sample_id": "s016", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "several invented claims (CityHopper S 80 km, Sparrow sponsoring Cycle Day)"}
+{"sample_id": "s017", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "both prices right but no second Swift E2 detail (R2)"}
+{"sample_id": "s018", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "both prices, 60 km range; X1 aside is its claimed spec, nothing contradicts the data"}
+{"sample_id": "s019", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "both prices right but no second Swift E2 detail (R2)"}
+{"sample_id": "s020", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "city and join date right, but says she has bought nothing"}
+{"sample_id": "s021", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "city and join date right, but says she has bought nothing"}
+{"sample_id": "s022", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong city and join date; says no purchases"}
+{"sample_id": "s023", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented join date and products"}
+{"sample_id": "s024", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "city and join date right, but says she has bought nothing"}
+{"sample_id": "s025", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "stops before listing purchases (runaway tool call text)"}
+{"sample_id": "s026", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "purchase list is empty"}
+{"sample_id": "s027", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "Mumbai, 2024-09-11, all four orders with correct quantities and dates"}
+{"sample_id": "s028", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "dates the last helmet order 2 October; it was 2 September"}
+{"sample_id": "s029", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "lists the products without quantities (implies one of each)"}
+{"sample_id": "s030", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the order was not found; drafts a non-answer"}
+{"sample_id": "s031", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no information; order exists and is shipped"}
+{"sample_id": "s032", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says order not found; speculates it was cancelled"}
+{"sample_id": "s033", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says order not found"}
+{"sample_id": "s034", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says order not found; suggests it may be a Sparrow bike"}
+{"sample_id": "s035", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no information; asks the customer for details"}
+{"sample_id": "s036", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no order with that ID exists"}
+{"sample_id": "s037", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "shipped, Trailblazer X1 Pro, polite, nothing invented"}
+{"sample_id": "s038", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "shipped and X1 Pro right, but invents a note that the product name was updated"}
+{"sample_id": "s039", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "shipped, Trailblazer X1 Pro, polite, addressed to Nikhil"}
+{"sample_id": "s040", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no message; claims an invitation was sent"}
+{"sample_id": "s041", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no message; claims an invitation was sent"}
+{"sample_id": "s042", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "refuses; says it cannot send emails (none was asked for)"}
+{"sample_id": "s043", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no message; claims an email was sent"}
+{"sample_id": "s044", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no message; claims an invitation was sent"}
+{"sample_id": "s045", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "raw tool call text; no date or place"}
+{"sample_id": "s046", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no message; claims it was sent"}
+{"sample_id": "s047", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: date, place and time right, but says Kestrel is hosting (it is a sponsor)"}
+{"sample_id": "s048", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong co-sponsor (EV scheme, not Namma Metro); invents a job opening"}
+{"sample_id": "s049", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "date, place, time right, but wrong co-sponsor (EV scheme, not Namma Metro)"}
+{"sample_id": "s050", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a 30-day policy and offers to take the bike back"}
+{"sample_id": "s051", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a 30-day policy"}
+{"sample_id": "s052", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "nonsensical reason (bike sold out); not the odometer rule"}
+{"sample_id": "s053", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "offers to process the return"}
+{"sample_id": "s054", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no policy found; it is in the handbook"}
+{"sample_id": "s055", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a 10-day policy and contact details"}
+{"sample_id": "s056", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "asks for more details instead of answering"}
+{"sample_id": "s057", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "quotes the rule then says the customer is eligible for a refund"}
+{"sample_id": "s058", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "quotes the rule but walks the customer through a refund"}
+{"sample_id": "s059", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "concludes the bike can be returned despite 120 km"}
+{"sample_id": "s060", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: $12M, Banyan Peak, Orbit right, but lists a Supply Chain Associate role (it is Analyst)"}
+{"sample_id": "s061", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "raw tool call text"}
+{"sample_id": "s062", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no amount or lead investor; invented use of funds"}
+{"sample_id": "s063", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no amount or lead investor"}
+{"sample_id": "s064", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: $12M, Banyan Peak, Orbit right, but lists a Supply Chain Associate role (it is Analyst)"}
+{"sample_id": "s065", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "raw tool call text"}
+{"sample_id": "s066", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no amount or lead investor; invented use of funds"}
+{"sample_id": "s067", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no amount or lead investor; nonsense use of funds"}
+{"sample_id": "s068", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no lead investor; says Kestrel aims to triple revenue in 2024 (it did triple)"}
+{"sample_id": "s069", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "$12M led by Banyan Peak, use of funds; extra facts correct"}
+{"sample_id": "s070", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it emailed a Returns Team; no answer"}
+{"sample_id": "s071", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "raw tool call text"}
+{"sample_id": "s072", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "30 days right, but invents proof-of-purchase/packaging steps and omits refund method and timing"}
+{"sample_id": "s073", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the refund starts once the helmet has been used"}
+{"sample_id": "s074", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no policy found; guesses"}
+{"sample_id": "s075", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "runaway tool call text"}
+{"sample_id": "s076", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the helmet is not eligible for a refund"}
+{"sample_id": "s077", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: 30 days and refund terms right, but invents free returns only above Rs 5,000"}
+{"sample_id": "s078", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "30 days and refund terms right, but invents returns at stores in six cities"}
+{"sample_id": "s079", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "dumps the whole handbook incl. odometer steps for a helmet; never answers this case"}
+{"sample_id": "s080", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it could not find the issue; substitutes X1 review range"}
+{"sample_id": "s081", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it wrote a file; no paragraph"}
+{"sample_id": "s082", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents a cause (batteries need a full charge)"}
+{"sample_id": "s083", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents lower battery capacity; no firmware cause or fix"}
+{"sample_id": "s084", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says a software update reduced battery capacity; no 0 km estimate, invents improvements"}
+{"sample_id": "s086", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "generic apology; none of the rubric facts"}
+{"sample_id": "s087", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "v2.3.1 made the range estimate drop to 0 km, bikes kept working, rolled back and v2.3.2 released"}
+{"sample_id": "s088", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "0 km at about 20%, safety intact, rolled back and v2.3.2 released"}
+{"sample_id": "s089", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "facts right but never says the bikes kept working or that it was safe (R2)"}
+{"sample_id": "s091", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no records found"}
+{"sample_id": "s092", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented impact (20,000 customers) and cause"}
+{"sample_id": "s094", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it sent an email; no summary"}
+{"sample_id": "s096", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented 1,000 customers and cause"}
+{"sample_id": "s097", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "140 attempts, Rs 6.2 lakh, expired TLS cert after migration, renewed + expiry alert (slightly garbled wording)"}
+{"sample_id": "s098", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "140 attempts, Rs 6.2 lakh, expired TLS cert, renewed, cron re-enabled, 14-day alert"}
+{"sample_id": "s099", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "140 attempts, Rs 6.2 lakh, expired TLS cert after migration, renewed + cron re-enabled + alert"}
+{"sample_id": "s100", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: covers all three issues, but claims several unhandled exceptions (the log has one)"}
+{"sample_id": "s101", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "payment timeouts, two inventory sync 503s from the warehouse API, DB pool exhaustion; nothing invented"}
+{"sample_id": "s102", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no inventory sync cause; wrong order/payment details"}
+{"sample_id": "s103", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents repeated 15-minute outages"}
+{"sample_id": "s104", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "timeouts with successful retries, PUN-1 503 sync failures, DB pool exhaustion"}
+{"sample_id": "s105", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the payment gateway had no timeouts"}
+{"sample_id": "s106", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the 08:15 sync succeeded (it failed); wrong pool recovery time"}
+{"sample_id": "s107", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents downtime and a degenerate attendee list"}
+{"sample_id": "s108", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "timeouts retried, sync failed for a warehouse API, DB pool refused then recovered"}
+{"sample_id": "s109", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "ties inventory sync to orders; invents a bounce alert from a ticket"}
+{"sample_id": "s110", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says nothing relevant found; asks the user"}
+{"sample_id": "s111", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says nothing relevant found; asks the user"}
+{"sample_id": "s112", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents an action item and owner"}
+{"sample_id": "s113", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the action items do not exist"}
+{"sample_id": "s114", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it emailed the operations team; no list"}
+{"sample_id": "s115", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "runaway tool call text; no list"}
+{"sample_id": "s116", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents six action items and owners"}
+{"sample_id": "s117", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "all five items with correct owners (no due dates given)"}
+{"sample_id": "s118", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "all five items, correct owners and due dates"}
+{"sample_id": "s119", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "all five items with correct owners (no due dates given)"}
+{"sample_id": "s120", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "has Ravi reporting to Shalini (both report to Ritu)"}
+{"sample_id": "s121", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "Ritu leads; Shalini (Supply Chain Lead) and Ravi (Warehouse Manager) report to her"}
+{"sample_id": "s122", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no names; invented generic roles"}
+{"sample_id": "s123", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no names; invented generic roles"}
+{"sample_id": "s124", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the information is not available"}
+{"sample_id": "s125", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the structure is not available; lists a wrong job title"}
+{"sample_id": "s126", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented generic structure, no names"}
+{"sample_id": "s127", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "has Ravi reporting to Shalini (both report to Ritu)"}
+{"sample_id": "s128", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "Ritu leads; Shalini and Ravi report to her with correct titles"}
+{"sample_id": "s129", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "Ritu leads; Shalini and Ravi report to her with correct titles"}
+{"sample_id": "s130", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and prices"}
+{"sample_id": "s131", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and prices"}
+{"sample_id": "s132", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and dollar prices"}
+{"sample_id": "s133", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and prices"}
+{"sample_id": "s134", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and dollar prices"}
+{"sample_id": "s135", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "raw tool call with invented prices"}
+{"sample_id": "s136", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and prices"}
+{"sample_id": "s137", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented models and prices"}
+{"sample_id": "s138", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "gives the current prices as the new prices"}
+{"sample_id": "s139", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "X1, X1 Pro, Fold right, but raises the CityHopper S to Rs 62,999 (it stays at Rs 59,999)"}
+{"sample_id": "s140", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no internal document mentions the price rise; it exists"}
+{"sample_id": "s141", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there is no information about the price change"}
+{"sample_id": "s142", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it has no access; describes the DB schema"}
+{"sample_id": "s143", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "speculates about strategy; no battery-cost reason"}
+{"sample_id": "s144", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no documents found; no answer"}
+{"sample_id": "s145", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "suggests the Series A may be the reason; no battery-cost reason"}
+{"sample_id": "s146", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it has no access"}
+{"sample_id": "s147", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong percentages (CityHopper S and Fold +4%, X1 Pro +6%); wrong Cycle Day sponsor"}
+{"sample_id": "s148", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "lithium/battery cost reason right, but degenerates into a repeating loop and adds an unsupported claim"}
+{"sample_id": "s149", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "contradicts itself: Fold and Battery Pack both raised and unchanged"}
+{"sample_id": "s150", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there is no sales data; asks the user"}
+{"sample_id": "s151", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "asks the user for a column name"}
+{"sample_id": "s152", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "returns an invented SQL query, no figures"}
+{"sample_id": "s153", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no figures"}
+{"sample_id": "s154", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "asks the user for a column name"}
+{"sample_id": "s155", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there were no orders in Q3"}
+{"sample_id": "s156", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there were no orders"}
+{"sample_id": "s157", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "e-bike revenue garbled ($64,4992) and all figures in dollars"}
+{"sample_id": "s158", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "e-bike revenue garbled ($64,4992) and all figures in dollars"}
+{"sample_id": "s159", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invents unit counts; accessory and e-bike revenue wrong"}
+{"sample_id": "s160", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says no product or price data exists; asks the user"}
+{"sample_id": "s161", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s162", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s163", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s164", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the catalogue is unavailable; asks the user"}
+{"sample_id": "s165", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s166", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "states 15% but no eligibility rule, cap or per-bike savings; asks the user"}
+{"sample_id": "s167", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer; asks the user"}
+{"sample_id": "s168", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says the Trailblazer X1 Pro qualifies"}
+{"sample_id": "s169", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says only the X1 qualifies, with Rs 88,098.94 savings"}
+{"sample_id": "s170", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it scheduled a meeting and sent an email; no update"}
+{"sample_id": "s171", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "claims it scheduled a meeting and sent an email; no update"}
+{"sample_id": "s172", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says there are no unresolved tickets"}
+{"sample_id": "s173", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "asks the user for a table name"}
+{"sample_id": "s174", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s175", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented counts (2 open, 1 in progress) and date"}
+{"sample_id": "s176", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "no answer"}
+{"sample_id": "s177", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong count (11, not 9); wrong oldest ticket"}
+{"sample_id": "s178", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "oldest ticket right (27 June, order not delivered) but count wrong (11, not 9)"}
+{"sample_id": "s179", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "wrong count and wrong oldest ticket"}
+{"sample_id": "s180", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "recommends Ampere Works for invented reasons (company history)"}
+{"sample_id": "s181", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says neither vendor is in the profiles"}
+{"sample_id": "s182", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented vendor characteristics; no profile figures"}
+{"sample_id": "s183", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented characteristics; no profile figures"}
+{"sample_id": "s184", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "uses web company history; no recommendation"}
+{"sample_id": "s185", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says neither vendor is in the profiles"}
+{"sample_id": "s186", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "invented characteristics; no profile figures"}
+{"sample_id": "s187", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "borderline: right recommendation and direction of defect rate and capacity, but invents a history of meeting volume requirements"}
+{"sample_id": "s188", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says Voltcell is cheaper (Ampere is Rs 265 vs Rs 290)"}
+{"sample_id": "s189", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says Voltcell is cheaper and Ampere has the shorter lead time; invents Ampere late shipments"}
+{"sample_id": "s190", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "8.2/10, 68 vs 80 km, correct likes and dislikes"}
+{"sample_id": "s191", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "8.2/10, 68 vs 80 km, correct likes and dislikes"}
+{"sample_id": "s192", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it could not find the review"}
+{"sample_id": "s193", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it could not find the review"}
+{"sample_id": "s194", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "attributes the Fold small-wheel complaint to the X1"}
+{"sample_id": "s195", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "correct likes and dislikes, 68 vs 80 km, charging times"}
+{"sample_id": "s196", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "says it could not find any reviews"}
+{"sample_id": "s197", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "68 vs 80 km, correct likes and dislikes"}
+{"sample_id": "s198", "label": "pass", "labeled_by": "claude-opus-5.5", "rationale": "68 vs 80 km, weight, app, brakes, no lockout"}
+{"sample_id": "s199", "label": "fail", "labeled_by": "claude-opus-5.5", "rationale": "X1 part correct, but adds a Fold summary that calls the small wheels a plus"}
