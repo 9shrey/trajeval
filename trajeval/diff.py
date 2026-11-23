@@ -24,7 +24,9 @@ METRICS = ("steps", "tool_calls", "invalid_calls", "tokens", "wall_ms")
 def diff_runs(base: dict, cand: dict, alpha: float = 0.10, n_boot: int = 2000, checker_only: bool = False) -> dict:
     """checker_only: compare only deterministically graded tasks. A judge with kappa well below 1 adds
     grading noise to every open-ended task, which is no basis for failing a build."""
-    A, B = per_task(base, checker_only), per_task(cand, checker_only)
+    if checker_only:
+        base, cand = (_checks_only(r) for r in (base, cand))
+    A, B = per_task(base), per_task(cand)
     tids = [t for t in A if t in B and A[t]["n"] and B[t]["n"]]
     p_reg = [fisher_one_sided(A[t]["passes"], A[t]["n"], B[t]["passes"], B[t]["n"]) for t in tids]
     p_imp = [fisher_one_sided(B[t]["passes"], B[t]["n"], A[t]["passes"], A[t]["n"]) for t in tids]
@@ -70,6 +72,10 @@ def diff_runs(base: dict, cand: dict, alpha: float = 0.10, n_boot: int = 2000, c
             "raw_p05_regressed": sum(r["p_regress"] < 0.05 for r in rows),
         },
     }
+
+
+def _checks_only(run: dict) -> dict:
+    return {"meta": run["meta"], "results": [r for r in run["results"] if r["category"] != "open_ended"]}
 
 
 def format_diff(d: dict, show: str = "flagged") -> str:
